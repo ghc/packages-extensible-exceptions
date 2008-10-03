@@ -152,8 +152,22 @@ instance Exception E.AsyncException where
        Caster (\New.NestedAtomically -> NestedAtomically),
        Caster (\New.Deadlock -> Deadlock),
        Caster (\exc -> DynException exc),
-       Caster (\(New.ErrorCall err) -> ErrorCall err),
        -}
+
+data ErrorCall = ErrorCall String
+    deriving Typeable
+
+instance Exception ErrorCall where
+    toException (ErrorCall str) = toException (E.ErrorCall str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.ErrorCall str) ->
+                                          Just (ErrorCall str)
+                                      _ -> Nothing
+
+instance Show ErrorCall where
+    showsPrec _ (ErrorCall err) = showString err
+
+-----
 
 instance Typeable ExitCode where
     typeOf _ = mkTyConApp (mkTyCon "ExitCode") []
