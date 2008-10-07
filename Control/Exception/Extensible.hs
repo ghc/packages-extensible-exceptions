@@ -7,7 +7,7 @@ import Control.Exception
 #else
 module Control.Exception.Extensible (
     module Control.Exception.Extensible,
-    E.AsyncException(..),
+    E.AsyncException(..), E.block, E.unblock,
     E.IOException,
     E.evaluate,
     ) where
