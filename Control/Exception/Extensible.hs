@@ -1,3 +1,6 @@
+{-# LANGUAGE CPP, ExistentialQuantification,
+             DeriveDataTypeable
+  #-}
 
 #if __GLASGOW_HASKELL__ >= 609
 module Control.Exception.Extensible (module Control.Exception) where
@@ -6,14 +9,38 @@ import Control.Exception
 
 #else
 module Control.Exception.Extensible (
-    module Control.Exception.Extensible,
-    E.AsyncException(..), E.block, E.unblock,
-    E.IOException,
+    Exception,
+    throwIO,
+    throw,
+    throwTo,
+    catch,
+    try,
+    E.block,
+    E.unblock,
     E.evaluate,
+    bracket,
+    finally,
+    E.ArithException(..),
+    E.ArrayException(..),
+    AssertionFailed(..),
+    E.AsyncException(..),
+    BlockedOnDeadMVar(..),
+    BlockedIndefinitely(..),
+    NestedAtomically(..),
+    Deadlock(..),
+    ErrorCall(..),
+    ExitCode(),
+    E.IOException,
+    NoMethodError(..),
+    NonTermination(..),
+    PatternMatchFail(..),
+    RecConError(..),
+    RecSelError(..),
+    RecUpdError(..)
     ) where
 
 import Prelude hiding (catch)
-import Control.Concurrent
+import Control.Concurrent hiding (throwTo)
 import qualified Control.Exception as E
 import Data.Dynamic
 import Data.Typeable
@@ -118,10 +145,24 @@ instance Exception E.Exception
 -- The new Exception types. These need to map to/from E.Exception so
 -- that uses of legacy catch/throw functions work.
 
-       {-
-       Caster (\exc -> ArithException exc),
-       Caster (\exc -> ArrayException exc),
--}
+----
+
+instance Exception E.ArithException where
+    toException ae = toException (E.ArithException ae)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.ArithException ae) ->
+                                         Just ae
+                                      _ -> Nothing
+----
+
+instance Exception E.ArrayException where
+    toException ae = toException (E.ArrayException ae)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.ArrayException ae) ->
+                                          Just ae
+                                      _ -> Nothing
+
+----
 
 data AssertionFailed = AssertionFailed String
     deriving Typeable
@@ -145,14 +186,66 @@ instance Exception E.AsyncException where
                                           Just ae
                                       _ -> Nothing
 
-{-
-       Caster (\exc -> AsyncException exc),
-       Caster (\New.BlockedOnDeadMVar -> BlockedOnDeadMVar),
-       Caster (\New.BlockedIndefinitely -> BlockedIndefinitely),
-       Caster (\New.NestedAtomically -> NestedAtomically),
-       Caster (\New.Deadlock -> Deadlock),
-       Caster (\exc -> DynException exc),
-       -}
+----
+
+data BlockedOnDeadMVar = BlockedOnDeadMVar
+    deriving Typeable
+
+instance Exception BlockedOnDeadMVar where
+    toException BlockedOnDeadMVar = toException (E.BlockedOnDeadMVar)
+    fromException (SomeException e) = case cast e of
+                                      Just E.BlockedOnDeadMVar ->
+                                          Just BlockedOnDeadMVar
+                                      _ -> Nothing
+instance Show BlockedOnDeadMVar where
+    showsPrec n BlockedOnDeadMVar = showsPrec n E.BlockedOnDeadMVar
+
+----
+
+data BlockedIndefinitely = BlockedIndefinitely
+    deriving Typeable
+
+instance Exception BlockedIndefinitely where
+    toException BlockedIndefinitely = toException E.BlockedIndefinitely
+    fromException (SomeException e) = case cast e of
+                                      Just E.BlockedIndefinitely ->
+                                          Just BlockedIndefinitely
+                                      _ -> Nothing
+
+instance Show BlockedIndefinitely where
+    showsPrec n BlockedIndefinitely = showsPrec n E.BlockedIndefinitely
+
+----
+
+data NestedAtomically = NestedAtomically
+    deriving Typeable
+
+instance Exception NestedAtomically where
+    toException NestedAtomically = toException E.NestedAtomically
+    fromException (SomeException e) = case cast e of
+                                    Just E.NestedAtomically ->
+                                        Just NestedAtomically
+                                    _ -> Nothing
+
+instance Show NestedAtomically where
+    showsPrec n NestedAtomically = showsPrec n E.NestedAtomically
+
+----
+
+data Deadlock = Deadlock
+    deriving Typeable
+
+instance Exception Deadlock where
+    toException Deadlock = toException E.Deadlock
+    fromException (SomeException e) = case cast e of
+                                      Just E.Deadlock ->
+                                          Just Deadlock
+                                      _ -> Nothing
+
+instance Show Deadlock where
+    showsPrec n Deadlock = showsPrec n E.Deadlock
+
+-----
 
 data ErrorCall = ErrorCall String
     deriving Typeable
@@ -178,7 +271,6 @@ instance Exception ExitCode where
                                       Just (E.ExitException ee) ->
                                           Just ee
                                       _ -> Nothing
-
 -----
 
 instance Exception E.IOException where
@@ -188,13 +280,99 @@ instance Exception E.IOException where
                                           Just ioe
                                       _ -> Nothing
 
-{-
-       Caster (\(New.NoMethodError err) -> NoMethodError err),
-       Caster (\New.NonTermination -> NonTermination),
-       Caster (\(New.PatternMatchFail err) -> PatternMatchFail err),
-       Caster (\(New.RecConError err) -> RecConError err),
-       Caster (\(New.RecSelError err) -> RecSelError err),
-       Caster (\(New.RecUpdError err) -> RecUpdError err)
--}
+----
+
+data NoMethodError = NoMethodError String
+    deriving Typeable
+
+instance Exception NoMethodError where
+    toException (NoMethodError str) = toException (E.NoMethodError str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.NoMethodError str) ->
+                                          Just (NoMethodError str)
+                                      _ -> Nothing
+
+instance Show NoMethodError where
+    showsPrec _ (NoMethodError str) = showString str
+
+----
+
+data NonTermination = NonTermination
+    deriving Typeable
+
+instance Exception NonTermination where
+    toException NonTermination = toException E.NonTermination
+    fromException (SomeException e) = case cast e of
+                                      Just E.NonTermination ->
+                                          Just NonTermination
+                                      _ -> Nothing
+
+instance Show NonTermination where
+    showsPrec n NonTermination = showsPrec n E.NonTermination
+
+----
+
+data PatternMatchFail = PatternMatchFail String
+    deriving Typeable
+
+instance Exception PatternMatchFail where
+    toException (PatternMatchFail str) = toException (E.PatternMatchFail str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.PatternMatchFail str) ->
+                                          Just (PatternMatchFail str)
+                                      _ -> Nothing
+
+instance Show PatternMatchFail where
+    showsPrec _ (PatternMatchFail str) = showString str
+    
+
+----
+
+data RecConError = RecConError String
+    deriving Typeable
+
+instance Exception RecConError where
+    toException (RecConError str) = toException (E.RecConError str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.RecConError str) ->
+                                          Just (RecConError str)
+                                      _ -> Nothing
+
+instance Show RecConError where
+    showsPrec _ (RecConError str) = showString str
+    
+
+
+----
+
+data RecSelError = RecSelError String
+    deriving Typeable
+
+instance Exception RecSelError where
+    toException (RecSelError str) = toException (E.RecSelError str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.RecSelError str) ->
+                                          Just (RecSelError str)
+                                      _ -> Nothing
+
+instance Show RecSelError where
+    showsPrec _ (RecSelError str) = showString str
+
+----
+
+data RecUpdError = RecUpdError String
+    deriving Typeable
+
+instance Exception RecUpdError where
+    toException (RecUpdError str) = toException (E.RecUpdError str)
+    fromException (SomeException e) = case cast e of
+                                      Just (E.RecUpdError str) ->
+                                          Just (RecUpdError str)
+                                      _ -> Nothing
+
+instance Show RecUpdError where
+    showsPrec _ (RecUpdError str) = showString str
+
+
 #endif
 
