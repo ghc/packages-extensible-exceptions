@@ -9,7 +9,8 @@ import Control.Exception
 
 #else
 module Control.Exception.Extensible (
-    Exception,
+    Exception(..),
+    SomeException(..),
     throwIO,
     throw,
     throwTo,
@@ -19,6 +20,7 @@ module Control.Exception.Extensible (
     E.unblock,
     E.evaluate,
     bracket,
+    onException,
     finally,
     E.ArithException(..),
     E.ArrayException(..),
@@ -29,7 +31,7 @@ module Control.Exception.Extensible (
     NestedAtomically(..),
     Deadlock(..),
     ErrorCall(..),
-    ExitCode(),
+    ExitCode(..),
     E.IOException,
     NoMethodError(..),
     NonTermination(..),
