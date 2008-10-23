@@ -1,6 +1,3 @@
-{-# LANGUAGE CPP, ExistentialQuantification,
-             DeriveDataTypeable
-  #-}
 
 #if __GLASGOW_HASKELL__ >= 609
 module Control.Exception.Extensible (module Control.Exception) where
