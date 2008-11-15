@@ -13,7 +13,11 @@ cabal-version:  >=1.2
 build-type: Simple
 
 Library {
-    build-depends: base
+    if impl(ghc>=6.9)
+        cpp-options: -DUSE_NEW_EXCEPTIONS
+        build-depends: base>=4&&<5
+    else
+        build-depends: base<4
     exposed-modules:
         Control.Exception.Extensible
     extensions: CPP, ExistentialQuantification, DeriveDataTypeable

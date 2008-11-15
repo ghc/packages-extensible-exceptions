@@ -1,5 +1,5 @@
 
-#if __GLASGOW_HASKELL__ >= 609
+#ifdef USE_NEW_EXCEPTIONS
 module Control.Exception.Extensible (module Control.Exception) where
 
 import Control.Exception
