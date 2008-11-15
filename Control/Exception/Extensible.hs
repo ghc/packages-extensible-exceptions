@@ -2,7 +2,7 @@
 #ifdef USE_NEW_EXCEPTIONS
 module Control.Exception.Extensible (module Control.Exception) where
 
-import Control.Exception
+import Control.Exception hiding (assert, blocked)
 
 #else
 module Control.Exception.Extensible (
