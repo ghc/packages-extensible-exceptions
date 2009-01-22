@@ -8,7 +8,7 @@ synopsis:       Extensible exceptions
 description:
     This package provides extensible exceptions for both new and 
     old versions of GHC (i.e., < 6.10).
-cabal-version:  >=1.2
+cabal-version:  >=1.6
 build-type: Simple
 
 source-repository head
