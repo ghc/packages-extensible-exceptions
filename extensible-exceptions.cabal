@@ -5,6 +5,7 @@ license-file:   LICENSE
 maintainer:     libraries@haskell.org
 bug-reports: http://hackage.haskell.org/trac/ghc/newticket?component=libraries%20%28other%29
 synopsis:       Extensible exceptions
+category:       Control
 description:
     This package provides extensible exceptions for both new and 
     old versions of GHC (i.e., < 6.10).
