@@ -21,8 +21,8 @@ build-type: Simple
 -- and they don't understand source-repository sections
 -- (GHC trac #3931)
 -- source-repository head
---     type:     darcs
---     location: http://darcs.haskell.org/packages/extensible-exceptions/
+--     type:     git
+--     location: http://darcs.haskell.org/packages/extensible-exceptions.git/
 
 Library {
     if impl(ghc>=6.9)
